@@ -25,28 +25,29 @@ public class PrometeusVR : MonoBehaviour
       //[Header("CAR SETUP")]
       [Space(10)]
       [Range(20, 190)]
-      public int maxSpeed = 90; //The maximum speed that the car can reach in km/h.
+      public int maxSpeed = 120; //The maximum speed that the car can reach in km/h.
       [Range(10, 120)]
       public int maxReverseSpeed = 45; //The maximum speed that the car can reach while going on reverse in km/h.
       [Range(1, 10)]
-      public int accelerationMultiplier = 2; // How fast the car can accelerate. 1 is a slow acceleration and 10 is the fastest.
+      public int accelerationMultiplier = 6; // How fast the car can accelerate. 1 is a slow acceleration and 10 is the fastest.
       [Space(10)]
       [Range(10, 45)]
-      public int maxSteeringAngle = 27; // The maximum angle that the tires can reach while rotating the steering wheel.
+      public int maxSteeringAngle = 26; // The maximum angle that the tires can reach while rotating the steering wheel.
       [Range(0.1f, 1f)]
-      public float steeringSpeed = 0.5f; // How fast the steering wheel turns.
+      public float steeringSpeed = 0.3f; // How fast the steering wheel turns.
+      public bool useSpeedSensitiveSteering = true; // Reduces steering angle at high speeds to prevent violent spinning out.
       [Space(10)]
       [Range(100, 600)]
-      public int brakeForce = 350; // The strength of the wheel brakes.
+      public int brakeForce = 450; // The strength of the wheel brakes.
       [Range(1, 10)]
       public int decelerationMultiplier = 2; // How fast the car decelerates when the user is not using the throttle.
       [Range(1, 10)]
-      public int handbrakeDriftMultiplier = 5; // How much grip the car loses when the user hit the handbrake.
+      public int handbrakeDriftMultiplier = 3; // How much grip the car loses when the user hit the handbrake.
       [Space(10)]
-      public Vector3 bodyMassCenter; // This is a vector that contains the center of mass of the car. I recommend to set this value
-                                    // in the points x = 0 and z = 0 of your car. You can select the value that you want in the y axis,
-                                    // however, you must notice that the higher this value is, the more unstable the car becomes.
-                                    // Usually the y value goes from 0 to 1.5.
+      public Vector3 bodyMassCenter = new Vector3(0f, 0.45f, 0.1f); // Center of mass of the car. Y > 0 allows the chassis to lean and dive realistically.
+      [Space(10)]
+      public bool useAntiRollBars = true; // Enables anti-roll bars for realistic chassis lean without rolling over.
+      public float antiRollForce = 4000f; // Force of the anti-roll bars.
 
     //WHEELS
 
@@ -264,6 +265,48 @@ public class PrometeusVR : MonoBehaviour
 
     }
 
+    void FixedUpdate()
+    {
+      if (carRigidbody != null)
+      {
+        carRigidbody.centerOfMass = bodyMassCenter;
+
+        if (useAntiRollBars)
+        {
+          ApplyAntiRollBar(frontLeftCollider, frontRightCollider);
+          ApplyAntiRollBar(rearLeftCollider, rearRightCollider);
+        }
+      }
+    }
+
+    void ApplyAntiRollBar(WheelCollider leftWheel, WheelCollider rightWheel)
+    {
+      if (leftWheel == null || rightWheel == null) return;
+
+      WheelHit hit;
+      float travelL = 1.0f;
+      float travelR = 1.0f;
+
+      bool groundedL = leftWheel.GetGroundHit(out hit);
+      if (groundedL)
+      {
+        travelL = (-leftWheel.transform.InverseTransformPoint(hit.point).y - leftWheel.radius) / leftWheel.suspensionDistance;
+      }
+
+      bool groundedR = rightWheel.GetGroundHit(out hit);
+      if (groundedR)
+      {
+        travelR = (-rightWheel.transform.InverseTransformPoint(hit.point).y - rightWheel.radius) / rightWheel.suspensionDistance;
+      }
+
+      float antiRollForceAmount = (travelL - travelR) * antiRollForce;
+
+      if (groundedL)
+        carRigidbody.AddForceAtPosition(leftWheel.transform.up * -antiRollForceAmount, leftWheel.transform.position);
+      if (groundedR)
+        carRigidbody.AddForceAtPosition(rightWheel.transform.up * antiRollForceAmount, rightWheel.transform.position);
+    }
+
     // Update is called once per frame
     void Update()
     {
@@ -390,9 +433,7 @@ public class PrometeusVR : MonoBehaviour
       if(steeringAxis < -1f){
         steeringAxis = -1f;
       }
-      var steeringAngle = steeringAxis * maxSteeringAngle;
-      frontLeftCollider.steerAngle = Mathf.Lerp(frontLeftCollider.steerAngle, steeringAngle, steeringSpeed);
-      frontRightCollider.steerAngle = Mathf.Lerp(frontRightCollider.steerAngle, steeringAngle, steeringSpeed);
+      ApplySteering();
     }
 
     //The following method turns the front car wheels to the right. The speed of this movement will depend on the steeringSpeed variable.
@@ -401,9 +442,7 @@ public class PrometeusVR : MonoBehaviour
       if(steeringAxis > 1f){
         steeringAxis = 1f;
       }
-      var steeringAngle = steeringAxis * maxSteeringAngle;
-      frontLeftCollider.steerAngle = Mathf.Lerp(frontLeftCollider.steerAngle, steeringAngle, steeringSpeed);
-      frontRightCollider.steerAngle = Mathf.Lerp(frontRightCollider.steerAngle, steeringAngle, steeringSpeed);
+      ApplySteering();
     }
 
     //The following method takes the front car wheels to their default position (rotation = 0). The speed of this movement will depend
@@ -417,7 +456,17 @@ public class PrometeusVR : MonoBehaviour
       if(Mathf.Abs(frontLeftCollider.steerAngle) < 1f){
         steeringAxis = 0f;
       }
-      var steeringAngle = steeringAxis * maxSteeringAngle;
+      ApplySteering();
+    }
+
+    void ApplySteering(){
+      float currentMaxAngle = maxSteeringAngle;
+      if (useSpeedSensitiveSteering && maxSpeed > 0)
+      {
+        float speedRatio = Mathf.Clamp01(Mathf.Abs(carSpeed) / (maxSpeed * 0.75f));
+        currentMaxAngle = Mathf.Lerp(maxSteeringAngle, maxSteeringAngle * 0.45f, speedRatio);
+      }
+      var steeringAngle = steeringAxis * currentMaxAngle;
       frontLeftCollider.steerAngle = Mathf.Lerp(frontLeftCollider.steerAngle, steeringAngle, steeringSpeed);
       frontRightCollider.steerAngle = Mathf.Lerp(frontRightCollider.steerAngle, steeringAngle, steeringSpeed);
     }
@@ -622,15 +671,9 @@ public class PrometeusVR : MonoBehaviour
         isDrifting = false;
       }
       //If the 'driftingAxis' value is not 1f, it means that the wheels have not reach their maximum drifting
-      //value, so, we are going to continue increasing the sideways friction of the wheels until driftingAxis
+      //value, so, we are going to continue increasing the sideways friction of the rear wheels until driftingAxis
       // = 1f.
       if(driftingAxis < 1f){
-        FLwheelFriction.extremumSlip = FLWextremumSlip * handbrakeDriftMultiplier * driftingAxis;
-        frontLeftCollider.sidewaysFriction = FLwheelFriction;
-
-        FRwheelFriction.extremumSlip = FRWextremumSlip * handbrakeDriftMultiplier * driftingAxis;
-        frontRightCollider.sidewaysFriction = FRwheelFriction;
-
         RLwheelFriction.extremumSlip = RLWextremumSlip * handbrakeDriftMultiplier * driftingAxis;
         rearLeftCollider.sidewaysFriction = RLwheelFriction;
 
@@ -701,13 +744,7 @@ public class PrometeusVR : MonoBehaviour
       //If the 'driftingAxis' value is not 0f, it means that the wheels have not recovered their traction.
       //We are going to continue decreasing the sideways friction of the wheels until we reach the initial
       // car's grip.
-      if(FLwheelFriction.extremumSlip > FLWextremumSlip){
-        FLwheelFriction.extremumSlip = FLWextremumSlip * handbrakeDriftMultiplier * driftingAxis;
-        frontLeftCollider.sidewaysFriction = FLwheelFriction;
-
-        FRwheelFriction.extremumSlip = FRWextremumSlip * handbrakeDriftMultiplier * driftingAxis;
-        frontRightCollider.sidewaysFriction = FRwheelFriction;
-
+      if(RLwheelFriction.extremumSlip > RLWextremumSlip){
         RLwheelFriction.extremumSlip = RLWextremumSlip * handbrakeDriftMultiplier * driftingAxis;
         rearLeftCollider.sidewaysFriction = RLwheelFriction;
 
@@ -716,13 +753,7 @@ public class PrometeusVR : MonoBehaviour
 
         Invoke("RecoverTraction", Time.deltaTime);
 
-      }else if (FLwheelFriction.extremumSlip < FLWextremumSlip){
-        FLwheelFriction.extremumSlip = FLWextremumSlip;
-        frontLeftCollider.sidewaysFriction = FLwheelFriction;
-
-        FRwheelFriction.extremumSlip = FRWextremumSlip;
-        frontRightCollider.sidewaysFriction = FRwheelFriction;
-
+      }else if (RLwheelFriction.extremumSlip < RLWextremumSlip){
         RLwheelFriction.extremumSlip = RLWextremumSlip;
         rearLeftCollider.sidewaysFriction = RLwheelFriction;
 

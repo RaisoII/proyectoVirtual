@@ -227,7 +227,7 @@ MonoBehaviour:
   m_GameObject: {fileID: 335232162}
   m_Enabled: 0
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: c0fefceefe666bb4682b272ec8c5bdd0, type: 3}
+  m_Script: {fileID: 11500000, guid: 7f50e1294d847074ea2ff12ff19b8bb8, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   joystickMando: {fileID: 0}
@@ -235,12 +235,12 @@ MonoBehaviour:
   maxSpeed: 120
   maxReverseSpeed: 45
   accelerationMultiplier: 6
-  maxSteeringAngle: 35
-  steeringSpeed: 0.5
+  maxSteeringAngle: 26
+  steeringSpeed: 0.3
   brakeForce: 450
   decelerationMultiplier: 2
-  handbrakeDriftMultiplier: 5
-  bodyMassCenter: {x: 0, y: 0, z: 0}
+  handbrakeDriftMultiplier: 3
+  bodyMassCenter: {x: 0, y: 0.45, z: 0.1}
   frontLeftMesh: {fileID: 1429309447}
   frontLeftCollider: {fileID: 263460637}
   frontRightMesh: {fileID: 1527910120}
