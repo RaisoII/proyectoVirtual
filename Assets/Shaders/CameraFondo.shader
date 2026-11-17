@@ -6,12 +6,11 @@ Shader "Custom/CameraFondo"
     }
     SubShader
     {
-        Tags { "Queue"="Background+100" "RenderType"="Opaque" }
+        Tags { "Queue"="Background+1" "RenderType"="Opaque" }
         Pass
         {
-            Cull Off
-            ZWrite Off
-            ZTest Always
+            ZWrite On
+            ZTest LEqual
 
             CGPROGRAM
             #pragma vertex vert
