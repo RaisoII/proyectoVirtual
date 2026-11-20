@@ -1634,7 +1634,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ead36196674f45f199f1b729ae3c2459, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  streamUrl: http://10.3.35.206:8080/video
+  streamUrl: http://192.168.0.5:8080/video
   screenRenderer: {fileID: 653736572}
   currentFPS: 10.927731
   affectAmbientLight: 1
