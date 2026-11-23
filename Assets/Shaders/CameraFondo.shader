@@ -8,6 +8,8 @@ Shader "Custom/CameraFondo"
         _FondoColor ("Color Fuera de Camara", Color) = (0.05, 0.05, 0.05, 1)
         _RotacionY ("Ajuste Horizontal (Grados)", Range(-180, 180)) = 0.0
         _RotacionX ("Ajuste Vertical (Grados)", Range(-90, 90)) = 0.0
+        [Toggle] _InvertirY ("Invertir Vertical (Arriba/Abajo)", Float) = 1.0
+        [Toggle] _InvertirX ("Invertir Horizontal (Espejo)", Float) = 0.0
     }
     SubShader
     {
@@ -30,6 +32,8 @@ Shader "Custom/CameraFondo"
             fixed4 _FondoColor;
             float _RotacionY;
             float _RotacionX;
+            float _InvertirY;
+            float _InvertirX;
 
             struct appdata {
                 float4 vertex : POSITION;
@@ -85,6 +89,13 @@ Shader "Custom/CameraFondo"
                 // Si el píxel cae fuera del rectángulo de la cámara, pintamos el color de fondo
                 if (uv.x < 0.0 || uv.x > 1.0 || uv.y < 0.0 || uv.y > 1.0) {
                     return _FondoColor;
+                }
+
+                if (_InvertirX > 0.5) {
+                    uv.x = 1.0 - uv.x;
+                }
+                if (_InvertirY > 0.5) {
+                    uv.y = 1.0 - uv.y;
                 }
 
                 return tex2D(_MainTex, uv);

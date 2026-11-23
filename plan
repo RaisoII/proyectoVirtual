@@ -1,0 +1,136 @@
+# Implementación de streaming de video mediante WebRTC
+
+Quiero migrar nuestro sistema actual de transmisión de video desde HTTP/MJPEG sobre TCP hacia WebRTC, buscando reducir al mínimo la latencia entre la captura de la ESP32-CAM y la visualización en Android.
+
+## 1. Contexto actual
+
+Nuestra arquitectura actual es:
+
+ESP32-CAM → captura JPEG → HTTP/MJPEG sobre TCP (puerto 82) → `CameraReceiver` → Unity/Android → `Texture2D.LoadImage()` → pantalla.
+
+Actualmente:
+- La ESP32 utiliza `esp_camera_fb_get()` para obtener frames JPEG.
+- La configuración de cámara utiliza `PIXFORMAT_JPEG`.
+- Se utiliza `CAMERA_GRAB_LATEST`.
+- La ESP32 dispone de framebuffer en PSRAM.
+- El servidor HTTP transmite mediante `multipart/x-mixed-replace`.
+- Unity recibe los frames mediante `TcpClient` y `NetworkStream`.
+- `CameraReceiver` conserva el último frame recibido mediante `latestFrame`.
+- La interfaz de control utiliza WebSocket en el puerto 81.
+- La ESP32 funciona como punto de acceso Wi-Fi y Android se conecta directamente a ella.
+
+## 2. Objetivo
+
+Implementar WebRTC para transmitir el video desde la ESP32-CAM hacia Android.
+
+La prioridad absoluta es conseguir la menor latencia posible.
+
+Queremos:
+- Transmisión en tiempo real.
+- Evitar acumulación de frames antiguos.
+- Reducir buffering.
+- Mantener una frecuencia de actualización estable.
+- Aprovechar la compresión y los mecanismos de transporte apropiados para WebRTC.
+- Mantener la conexión dentro de nuestra red local, sin depender de servicios externos.
+
+## 3. Investigación técnica obligatoria
+
+Antes de escribir código, investigá la viabilidad de implementar WebRTC en nuestro hardware.
+
+Determiná:
+
+1. Qué modelo exacto de ESP32 estamos utilizando y cuáles son sus recursos disponibles.
+2. Qué framework y versión utilizamos (Arduino o ESP-IDF).
+3. Si existe una implementación WebRTC compatible con nuestro modelo de ESP32.
+4. Si podemos transmitir JPEG directamente mediante WebRTC o necesitamos codificar el video a VP8, H.264 u otro formato compatible.
+5. Qué consumo de RAM, PSRAM, CPU y ancho de banda implica cada alternativa.
+6. Cómo se realizará la negociación SDP y el intercambio de ICE.
+7. Cómo resolveremos la señalización si la ESP32 funciona como punto de acceso y no tenemos conexión a Internet.
+8. Si necesitamos STUN/TURN o podemos establecer una conexión completamente local.
+
+No presupongas que WebRTC significa simplemente enviar JPEG por UDP. Investigá qué mecanismos de transporte y formatos de medios son realmente compatibles.
+
+## 4. Arquitectura deseada
+
+Buscamos una arquitectura de este estilo:
+
+ESP32-CAM
+    ↓
+Captura de imagen
+    ↓
+Procesamiento / codificación compatible
+    ↓
+WebRTC PeerConnection
+    ↓
+Wi-Fi local
+    ↓
+Android
+    ↓
+Decodificación
+    ↓
+Visualización del video
+
+La señalización debe funcionar localmente.
+
+No queremos depender de servidores externos ni de Internet para visualizar la cámara.
+
+## 5. Compatibilidad con el proyecto existente
+
+Es fundamental conservar:
+
+- La conexión Wi-Fi actual.
+- El servidor WebSocket del puerto 81 para los controles del vehículo.
+- La lógica de control del vehículo.
+- La interfaz existente.
+- La estructura general del proyecto.
+
+El streaming de video debe poder evolucionar independientemente del sistema de control.
+
+Si es posible, mantené una implementación alternativa MJPEG durante las pruebas, para poder comparar ambas soluciones.
+
+## 6. Requisitos de rendimiento
+
+La implementación debe priorizar:
+
+- Baja latencia extremo a extremo.
+- Descarte de frames antiguos.
+- Ausencia de colas FIFO que reproduzcan video atrasado.
+- Buffering mínimo.
+- Captura y transmisión desacopladas cuando sea conveniente.
+- Evitar copias de memoria innecesarias.
+- No bloquear el hilo de captura.
+- Medición de FPS y latencia.
+
+Quiero instrumentación que permita medir el tiempo desde la captura hasta la visualización.
+
+No confundas FPS con latencia.
+
+## 7. Plan de implementación
+
+Trabajá por etapas:
+
+**Etapa 1: Auditoría**
+Analizá el hardware, firmware, dependencias y receptor Android actuales.
+
+**Etapa 2: Diseño**
+Presentá la arquitectura WebRTC más viable para nuestro hardware, incluyendo las bibliotecas necesarias y sus limitaciones.
+
+**Etapa 3: Prototipo**
+Implementá una prueba mínima que permita establecer una conexión WebRTC local y transmitir video.
+
+**Etapa 4: Integración**
+Integrá el sistema con el proyecto existente, conservando los controles y la interfaz.
+
+**Etapa 5: Medición**
+Compará la latencia y los FPS de la implementación nueva contra nuestro streaming MJPEG actual.
+
+## 8. Restricciones
+
+- No reemplaces componentes sin justificarlo.
+- No modifiques el sistema de control del vehículo.
+- No agregues dependencias innecesarias.
+- No inventes compatibilidad de bibliotecas.
+- No sacrifiques estabilidad por conseguir un FPS teórico mayor.
+- No elimines el streaming MJPEG hasta comprobar que WebRTC funciona correctamente.
+
+**IMPORTANTE: Antes de implementar, presentame el resultado de la auditoría y la arquitectura propuesta. No realices cambios todavía.**
