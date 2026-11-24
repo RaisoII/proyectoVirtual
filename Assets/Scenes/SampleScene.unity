@@ -1390,6 +1390,52 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   m_ActionAssets:
   - {fileID: -944628639613478452, guid: c348712bda248c246b8c49b3db54643f, type: 3}
+--- !u!1 &1209436012
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1209436014}
+  - component: {fileID: 1209436013}
+  m_Layer: 0
+  m_Name: InputManager
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &1209436013
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1209436012}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ae4eec84c868f014497740fe05711a10, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  gearLever: {fileID: 6281449390657254883}
+  steeringWheel: {fileID: 8867497525914893974}
+--- !u!4 &1209436014
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1209436012}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: -0.48604444, y: -0.4577462, z: -0.1048543}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1266289934
 GameObject:
   m_ObjectHideFlags: 0
@@ -3129,8 +3175,8 @@ Transform:
   - {fileID: 1098244985}
   - {fileID: 371560573}
   - {fileID: 543450652344657780}
-  - {fileID: 1585249532}
   - {fileID: 6851540911207146186}
+  - {fileID: 1585249532}
   m_Father: {fileID: 440457113}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!23 &580913629477311308
@@ -6866,7 +6912,6 @@ GameObject:
   - component: {fileID: 8867497525914893976}
   - component: {fileID: 8867497525914893975}
   - component: {fileID: 8867497525914893978}
-  - component: {fileID: 8867497525914893979}
   m_Layer: 7
   m_Name: wheel
   m_TagString: Untagged
@@ -7030,7 +7075,6 @@ GameObject:
   - component: {fileID: 8414661689704168739}
   - component: {fileID: 8414661689704168738}
   - component: {fileID: 8414661689704168737}
-  - component: {fileID: 8414661689704168736}
   - component: {fileID: 8414661689704168735}
   m_Layer: 7
   m_Name: Cube.000
@@ -10018,18 +10062,6 @@ BoxCollider:
   serializedVersion: 3
   m_Size: {x: 0.06724653, y: 0.2994821, z: 0.06686926}
   m_Center: {x: 0.0005478449, y: 0.13753468, z: -0.0042852825}
---- !u!114 &8414661689704168736
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 4907639642355140047}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: ae4eec84c868f014497740fe05711a10, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
 --- !u!59 &8414661689704168737
 HingeJoint:
   m_ObjectHideFlags: 0
@@ -11055,18 +11087,6 @@ HingeJoint:
   m_EnablePreprocessing: 1
   m_MassScale: 1
   m_ConnectedMassScale: 1
---- !u!114 &8867497525914893979
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 4723848031961084875}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 5274dabc983848747b67f4510bbdd77c, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
 --- !u!4 &8867497526082275498
 Transform:
   m_ObjectHideFlags: 0
@@ -11249,3 +11269,4 @@ SceneRoots:
   - {fileID: 546233907}
   - {fileID: 1328869279}
   - {fileID: 1821753998}
+  - {fileID: 1209436014}
