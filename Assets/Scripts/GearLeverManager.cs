@@ -16,13 +16,13 @@ public class GearLeverManager : MonoBehaviour
     void Update()
     {
         Vector3 rotation = this.transform.localRotation.eulerAngles;
-        if(rotation.x > 90)
+        if(rotation.x > 45)
         {
             float rotationnegative = rotation.x - 360;
-            Debug.Log("GearLever" + rotationnegative);
+            //Debug.Log("GearLever" + rotationnegative);
         }else
         {
-            Debug.Log("GearLever" + rotation.x);
+            //Debug.Log("GearLever" + rotation.x);
         }
     }
 }
