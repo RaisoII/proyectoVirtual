@@ -1421,6 +1421,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   gearLever: {fileID: 6281449390657254883}
   steeringWheel: {fileID: 8867497525914893974}
+  esp32Controller: {fileID: 1299639151}
 --- !u!4 &1209436014
 Transform:
   m_ObjectHideFlags: 0
@@ -1552,6 +1553,53 @@ WheelCollider:
   m_CorrespondingSourceObject: {fileID: 8615825633152659129, guid: 79d0ca8b77e301442afdb49f102e8aed, type: 3}
   m_PrefabInstance: {fileID: 202793125}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &1299639150
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1299639152}
+  - component: {fileID: 1299639151}
+  m_Layer: 0
+  m_Name: esp32Driver
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &1299639151
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1299639150}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6c82e6fb11a9a3d4ba879c8352b41f3a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  host: 192.168.4.1
+  port: 81
+  reconnectDelaySeconds: 2
+--- !u!4 &1299639152
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1299639150}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: -0.48604444, y: -0.4577462, z: -0.1048543}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1328869277
 GameObject:
   m_ObjectHideFlags: 0
@@ -11270,3 +11318,4 @@ SceneRoots:
   - {fileID: 1328869279}
   - {fileID: 1821753998}
   - {fileID: 1209436014}
+  - {fileID: 1299639152}
