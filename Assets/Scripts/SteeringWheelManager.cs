@@ -17,10 +17,10 @@ public class SteeringWheelManager : MonoBehaviour
         if(rotation.y > 90)
         {
             float rotationnegative = rotation.y - 360;
-            Debug.Log(rotationnegative);
+            Debug.Log("SteerWheel" + rotationnegative);
         }else
         {
-            Debug.Log(rotation.y);
+            Debug.Log("SteerWheel" + rotation.y);
         }
     }
 }
