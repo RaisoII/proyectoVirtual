@@ -77,6 +77,7 @@ public class CameraReceiver : MonoBehaviour
                 screenRenderer.material.SetTexture("_BaseMap", tex);
             }
             screenRenderer.material.mainTexture = tex;
+            SetMarginPreview(true);
         }
         else
         {
@@ -127,6 +128,7 @@ public class CameraReceiver : MonoBehaviour
                 if (!firstFrameReported)
                 {
                     firstFrameReported = true;
+                    SetMarginPreview(false);
                     Debug.Log("[CameraReceiver] ¡Conexión en tiempo real activa!");
                 }
 
@@ -179,6 +181,14 @@ public class CameraReceiver : MonoBehaviour
     }
 
     private Color targetAmbientColor = Color.black;
+
+    private void SetMarginPreview(bool visible)
+    {
+        if (screenRenderer != null && screenRenderer.material.HasProperty("_PreviewMargenes"))
+        {
+            screenRenderer.material.SetFloat("_PreviewMargenes", visible ? 1f : 0f);
+        }
+    }
 
     private void ApplySmoothedLighting()
     {
@@ -315,6 +325,11 @@ public class CameraReceiver : MonoBehaviour
                 activeClient = null;
             }
         }
+    }
+
+    private void OnDisable()
+    {
+        SetMarginPreview(true);
     }
 
     private void OnDestroy()

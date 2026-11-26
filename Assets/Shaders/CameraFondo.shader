@@ -6,10 +6,9 @@ Shader "Custom/CameraFondo"
         _FOVHorizontal ("FOV Horizontal (Grados)", Range(10, 170)) = 90.0
         _AspectRatio ("Relacion de Aspecto (Ancho/Alto)", Float) = 1.777
         _FondoColor ("Color Fuera de Camara", Color) = (0.05, 0.05, 0.05, 1)
+        [Toggle] _PreviewMargenes ("Vista previa de margenes", Float) = 1.0
         _RotacionY ("Ajuste Horizontal (Grados)", Range(-180, 180)) = 0.0
         _RotacionX ("Ajuste Vertical (Grados)", Range(-90, 90)) = 0.0
-        [Toggle] _InvertirY ("Invertir Vertical (Arriba/Abajo)", Float) = 1.0
-        [Toggle] _InvertirX ("Invertir Horizontal (Espejo)", Float) = 0.0
     }
     SubShader
     {
@@ -27,13 +26,13 @@ Shader "Custom/CameraFondo"
             #include "UnityCG.cginc"
 
             sampler2D _MainTex;
+            float4 _MainTex_TexelSize;
             float _FOVHorizontal;
             float _AspectRatio;
+            float _PreviewMargenes;
             fixed4 _FondoColor;
             float _RotacionY;
             float _RotacionX;
-            float _InvertirY;
-            float _InvertirX;
 
             struct appdata {
                 float4 vertex : POSITION;
@@ -79,32 +78,41 @@ Shader "Custom/CameraFondo"
                 // Normalizamos la dirección y aplicamos ajustes de alineación
                 float3 dir = RotateVector(normalize(i.localDir), _RotacionX, _RotacionY);
 
-                // Asumimos que el frente del auto es +Z. Si la proyección sale atrás, cambia > a < y el signo de dir.z
-                if (dir.z <= 0.0) {
-                    return _FondoColor;
-                }
-
                 // Proyección perspectiva (pinhole camera) sobre el plano Z = 1
                 float halfFovRad = radians(_FOVHorizontal * 0.5);
                 float scaleX = tan(halfFovRad);
                 float scaleY = scaleX / _AspectRatio;
 
                 float2 uv;
-                uv.x = (dir.x / dir.z) / (2.0 * scaleX) + 0.5;
-                uv.y = (dir.y / dir.z) / (2.0 * scaleY) + 0.5;
-
-                // Si el píxel cae fuera del rectángulo de la cámara, pintamos el color de fondo
-                if (uv.x < 0.0 || uv.x > 1.0 || uv.y < 0.0 || uv.y > 1.0) {
-                    return _FondoColor;
+                if (dir.z > 0.0) {
+                    uv.x = (dir.x / dir.z) / (2.0 * scaleX) + 0.5;
+                    uv.y = (dir.y / dir.z) / (2.0 * scaleY) + 0.5;
+                } else {
+                    // En la parte trasera se extiende el borde más cercano hasta cubrir el domo.
+                    float2 edgeDir = float2(dir.x / scaleX, dir.y / scaleY);
+                    float edgeScale = max(abs(edgeDir.x), abs(edgeDir.y));
+                    edgeDir = edgeScale > 0.00001 ? edgeDir / edgeScale : float2(0.0, 1.0);
+                    uv = edgeDir * 0.5 + 0.5;
                 }
 
-                if (_InvertirX > 0.5) {
-                    uv.x = 1.0 - uv.x;
-                }
-                if (_InvertirY > 0.5) {
-                    uv.y = 1.0 - uv.y;
+                if (_PreviewMargenes > 0.5) {
+                    if (dir.z <= 0.0 || uv.x < 0.0 || uv.x > 1.0 || uv.y < 0.0 || uv.y > 1.0) {
+                        return fixed4(0.12, 0.20, 0.23, 1.0);
+                    }
+
+                    float2 gridPosition = frac(uv * 8.0);
+                    float2 gridDistance = abs(gridPosition - 0.5);
+                    float gridLine = step(0.47, max(gridDistance.x, gridDistance.y));
+                    float edgeDistance = min(min(uv.x, 1.0 - uv.x), min(uv.y, 1.0 - uv.y));
+                    float border = 1.0 - step(0.004, edgeDistance);
+                    fixed3 previewColor = lerp(fixed3(0.28, 0.33, 0.34), fixed3(0.42, 0.47, 0.46), gridLine);
+                    previewColor = lerp(previewColor, fixed3(1.0, 0.55, 0.16), border);
+                    return fixed4(previewColor, 1.0);
                 }
 
+                // Muestrea dentro del primer/último texel, aunque la textura use wrap Repeat.
+                float2 halfTexel = _MainTex_TexelSize.xy * 0.5;
+                uv = clamp(uv, halfTexel, 1.0 - halfTexel);
                 return tex2D(_MainTex, uv);
             }
             ENDCG
